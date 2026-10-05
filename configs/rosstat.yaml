@@ -1,0 +1,45 @@
+# Конфиг загрузки данных Росстата (БДПМО в обработке проекта «Если быть точным», tochno.st/datasets/bdmo).
+# Скрипт не скачивает архив целиком: он читает из него по сети только три нужных файла.
+
+# Адреса архивов «в разбивке по показателям». Скрипт пробует их по порядку и берёт первый рабочий.
+# Если ни один не подошёл, скопируй адрес ссылки со страницы набора данных и впиши его первым в список.
+archives:
+  section32:            # занятость и заработная плата
+    - https://storage.yandexcloud.net/tochno-st-catalog/Rosstat/data_bdmo_118_v20260928/by_indicator/data_section32_112_v20260928.zip
+    - https://storage.yandexcloud.net/tochno-st-catalog/Rosstat/data_bdmo_118_v20250918/by_indicator/data_section32_112_v20250918.zip
+  section31:            # население
+    - https://storage.yandexcloud.net/tochno-st-catalog/Rosstat/data_bdmo_118_v20260928/by_indicator/data_section31_112_v20260928.zip
+    - https://storage.yandexcloud.net/tochno-st-catalog/Rosstat/data_bdmo_118_v20250918/by_indicator/data_section31_112_v20250918.zip
+
+indicators:             # код показателя: архив
+  Y48423007: section32  # среднемесячная заработная плата работников организаций
+  Y48423005: section32  # среднесписочная численность работников организаций
+  Y48112027: section31  # численность населения на 1 января
+
+years: [2022, 2023, 2024]   # какие годы оставить
+year_column: year
+
+# оставить только муниципальные образования верхнего уровня (районы, муниципальные и городские округа,
+# внутригородские территории городов федерального значения); поселения не нужны
+level_column: mun_level
+level_contains: "верхнего уровня"
+
+# служебные колонки с повторяющимся текстом, которые не сохраняются (иначе файлы занимают сотни мегабайт)
+drop_columns: [indicator_section_code, indicator_section, indicator_code, indicator_name, region_id,
+               region_name, mun_level, mun_district, municipality, mun_type, mun_type_oktmo, oktmo_history,
+               indicator_unit, comment]
+
+output_dir: data/raw/rosstat
+
+# ---------- внешняя проверка типов (src/09_rosstat_validation.py) ----------
+validation:
+  dictionary: data/raw/t_dict_municipal_districts.xlsx
+  mo_summary: data/processed/dynamics/mo_summary.csv
+  interpret: configs/interpret.yaml
+  year: 2023                      # основной год: покрытие 2024 года хуже
+  annual_period: "Январь-декабрь"
+  total_okved: "Всего по обследуемым видам экономической деятельности"
+  sections: [A, B, C, D, G, H, M, O, P, Q, R]   # разделы ОКВЭД2 для структуры занятости
+  min_coverage: 0.5               # показатель участвует в сравнении, если он есть не менее чем у половины МО
+  out_table: data/processed/rosstat/mo_rosstat.csv
+  report: reports/rosstat_validation.md
