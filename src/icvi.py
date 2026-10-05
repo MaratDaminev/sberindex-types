@@ -5,9 +5,11 @@
   CH    - индекс Калинского-Харабаша, больше - лучше
   S_Dbw - Halkidi & Vazirgiannis (2001): разброс внутри + плотность между кластерами, меньше - лучше
 По сети (взвешенная матрица смежности A):
-  AVI   - средняя изолируемость (Biswas & Biswas, 2017), больше - лучше
+  AVI   - средняя изолируемость (Biswas & Biswas, 2017), больше - лучше; считается по суммам матрицы смежности,
+          как в открытой библиотеке Pattern (github.com/Utopialvo/Pattern)
   AVU   - средняя объединяемость (Biswas & Biswas, 2017), меньше - лучше
-  MQ    - Modularization Quality, вариант TurboMQ (Mancoridis et al., 1998), больше - лучше; растёт с числом кластеров
+  MQ    - Modularization Quality, вариант TurboMQ (Mancoridis et al., 1998), больше - лучше; растёт с числом кластеров.
+          На неориентированной сети MQ = k * AVI, поэтому рядом приводится модулярность Q
   Q     - модулярность Ньюмана, больше - лучше
 """
 import numpy as np
@@ -57,7 +59,7 @@ def network_indices(A, labels):
     cut = W.sum(axis=1) - w_in                      # вес рёбер наружу
     m = w_in.sum() + cut.sum() / 2                  # суммарный вес всех рёбер
     with np.errstate(divide="ignore", invalid="ignore"):
-        isola = np.where(w_in + cut > 0, w_in / (w_in + cut), 0.0)
+        isola = np.where(2 * w_in + cut > 0, 2 * w_in / (2 * w_in + cut), 0.0)   # сумма по матрице смежности: внутреннее ребро входит дважды
         avi = isola.mean()
         den = cut[:, None] + cut[None, :] - W       # рёбра наружу у обоих кластеров без общих
         unifi = np.where(den > 0, W / den, 0.0)

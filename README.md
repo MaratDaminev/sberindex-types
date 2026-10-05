@@ -4,7 +4,7 @@
 
 Онлайн-конкурс СберИндекса 2026, направление «Кластеризация».
 
-Авторы: ВПИШИ ИМЕНА И ВУЗ
+Авторы: Даминев Марат УГНТУ, Атнагулов Тимур УГНТУ
 
 - Интерактивный лендинг: https://maratdaminev.github.io/sberindex-types/ (локально: `site/index.html`)
 - Методологический отчёт: [reports/methodology.md](reports/methodology.md)
