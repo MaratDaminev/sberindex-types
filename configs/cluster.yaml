@@ -1,0 +1,29 @@
+# Конфиг шагов 3-4: кластеризация и метрики качества (ICVI).
+
+input:
+  features: data/processed/features.parquet
+  network_dir: data/processed/network
+
+seed: 42
+n_clusters: 6               # число кластеров для методов, где оно задаётся заранее
+scan_k: [3, 4, 5, 6, 7, 8, 9, 10]   # перебор числа кластеров для обоснования выбора
+
+graphs:                     # сети из шага 2, на которых запускаются сетевые методы
+  - cosine_k10
+  - corr_k10
+  - geo_k10
+  - cosine_k20
+reference_graph: cosine_k10 # сеть для сетевых метрик у метода без сети (kmeans)
+
+methods:
+  kmeans: true              # только признаки, без сети (точка отсчёта)
+  louvain: true             # только сеть, число кластеров находит сам
+  spectral: true            # только сеть, число кластеров задано
+  ward_net: true            # признаки + сеть: метод Уорда, объединять можно только связанные МО
+
+louvain_resolution: 1.0     # больше значение - больше мелких кластеров
+
+output:
+  labels: data/processed/clusters/labels.parquet
+  icvi_monthly: data/processed/clusters/icvi_monthly.csv
+  report: reports/icvi_comparison.md

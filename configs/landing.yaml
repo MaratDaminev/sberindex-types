@@ -1,0 +1,31 @@
+# Конфиг шага 7: интерактивный лендинг (одна страница site/index.html).
+
+title: "Типы локальных экономик России"
+subtitle: "Динамическая кластеризация муниципалитетов по безналичным расходам, 2023-2024"
+authors: "Даминев Марат УГНТУ, Атнагулов Тимур УГНТУ"                       # впиши имя и вуз
+repo_url: ""                     # впиши ссылку на GitHub-репозиторий
+
+input:
+  features: data/processed/features.parquet
+  consumption: data/raw/hackathonlicence/consumption.parquet
+  market_access: data/raw/hackathonlicence/market_access.parquet
+  dictionary: data/raw/t_dict_municipal_districts.xlsx
+  labels: data/processed/dynamics/final_labels.parquet
+  mo_summary: data/processed/dynamics/mo_summary.csv
+  transitions: data/processed/dynamics/transitions.csv
+  icvi_monthly: data/processed/clusters/icvi_monthly.csv
+  interpret: configs/interpret.yaml      # отсюда берутся названия типов
+  dynamics: configs/dynamics.yaml        # отсюда берётся alpha
+  template: src/landing_template.html
+
+total_category: "Все категории"
+n_twins: 5                       # число "экономических двойников" у каждого МО
+map_presets:                     # кнопки быстрого перехода на карте (по названию региона)
+  - {label: "Москва и область", regions: ["Москва", "Московская область"]}
+  - {label: "Санкт-Петербург", regions: ["Санкт-Петербург"]}
+  - {label: "Башкортостан", regions: ["Республика Башкортостан"]}
+
+# цвета типов (проверены на различимость, в том числе при нарушениях цветового зрения)
+colors: {1: "#2a78d6", 2: "#eda100", 3: "#008300", 4: "#4a3aa7", 5: "#1baf7a", 6: "#e34948"}
+
+output: site/index.html

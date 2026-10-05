@@ -1,0 +1,26 @@
+# Конфиг проверок устойчивости (шаг 9).
+
+input:
+  features: data/processed/features.parquet
+  labels: data/processed/dynamics/final_labels.parquet
+
+seed: 42
+n_clusters: 6
+k: 10                      # число соседей в основной сети
+alpha: 0.5                 # вес истории в основном варианте
+
+subsample:
+  share: 0.8               # доля МО в подвыборке (без возвращения)
+  repeats_dynamic: 20      # повторов полного расчёта по месяцам (K = n_clusters)
+  repeats_k_scan: 30       # повторов на усреднённой сети для каждого K
+  k_scan: [3, 4, 5, 6, 7, 8, 9, 10]
+
+sensitivity:
+  graph_k: [10, 15, 20]
+  alpha: [0.3, 0.5, 0.7]
+  seeds: [1, 2, 3, 4, 5]
+
+drop_features: true        # пересчёт без каждого из признаков по очереди
+split_years: true          # независимый расчёт на первой и второй половине периода
+
+output: reports/robustness.md

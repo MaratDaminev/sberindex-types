@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Типы локальных экономик России</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f6f5f1; --surface: #fcfcfb; --line: #e3e1da; --grid: #eceae4;
+    --ink: #0b0b0b; --ink2: #52514e; --ink3: #85837c; --mute-dot: #d6d4cc; --accent: #184f95;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 40px 0 8px; }
+  h1 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.12; margin: 0 0 10px; letter-spacing: -0.01em; text-wrap: balance; }
+  h2 { font-size: 24px; line-height: 1.25; margin: 0 0 6px; }
+  h3 { font-size: 17px; margin: 0 0 4px; }
+  p { margin: 0 0 12px; max-width: 72ch; }
+  .lead { font-size: 18px; color: var(--ink2); }
+  .byline { color: var(--ink3); font-size: 14px; }
+  section { padding: 28px 0; border-top: 1px solid var(--line); }
+  .note { color: var(--ink2); font-size: 14px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 20px 0 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .stat b { display: block; font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--ink2); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 12px 0; }
+  button, input, select { font: inherit; color: inherit; }
+  .btn { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .btn:hover { border-color: var(--ink3); }
+  .btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .btn:focus-visible, input:focus-visible, canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .sq { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .num { font-variant-numeric: tabular-nums; color: var(--ink2); }
+  .mapgrid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .mapgrid { grid-template-columns: 1fr; } }
+  .mapbox { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  canvas#map { display: block; width: 100%; height: 440px; touch-action: none; cursor: grab; }
+  canvas#map.drag { cursor: grabbing; }
+  .zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .zoom .btn { width: 36px; height: 36px; padding: 0; font-size: 18px; line-height: 1; }
+  .time { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); }
+  .time input[type=range] { flex: 1; min-width: 80px; accent-color: var(--accent); }
+  .time output { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 7.5ch; }
+  #tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: #fff; border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.4; max-width: 280px; display: none; }
+  #tip b { font-size: 14px; }
+  #tip .row { display: flex; align-items: center; gap: 6px; }
+  #tip .key { width: 12px; height: 3px; border-radius: 2px; flex: none; }
+  .strip { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 6px 0 2px; }
+  .strip i { height: 18px; border-radius: 3px; display: block; }
+  .strip i.cur { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .axis { display: flex; justify-content: space-between; color: var(--ink3); font-size: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { padding: 5px 8px; text-align: right; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--ink2); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  .types { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 14px; }
+  .bars { display: grid; grid-template-columns: 11.5em 1fr 3.2em; gap: 3px 8px; align-items: center; font-size: 13px; margin-top: 10px; }
+  .track { position: relative; height: 12px; }
+  .track::before { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--ink3); }
+  .track i { position: absolute; top: 0; height: 12px; background: var(--ink2); border-radius: 0 4px 4px 0; }
+  .track i.neg { border-radius: 4px 0 0 4px; }
+  .twins { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .twins .btn { font-size: 13px; padding: 4px 9px; text-align: left; }
+  svg text { font: 12px system-ui, sans-serif; fill: var(--ink2); }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--accent); }
+  .warn { border-left: 3px solid var(--ink3); padding: 2px 0 2px 12px; margin: 10px 0; }
+  footer { padding: 24px 0 48px; color: var(--ink3); font-size: 14px; border-top: 1px solid var(--line); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="tip" role="status"></div>
+<div class="wrap">
+  <header>
+    <h1 id="title"></h1>
+    <p class="lead" id="subtitle"></p>
+    <p class="byline" id="byline"></p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section>
+    <h2>Карта типов по месяцам</h2>
+    <p class="note">Каждая точка это муниципалитет, цвет показывает его тип в выбранном месяце. Колесо мыши приближает, перетаскивание двигает карту. Нажми на точку, чтобы открыть карточку муниципалитета, или на тип в легенде, чтобы выделить его.</p>
+    <div class="controls">
+      <label>Найти: <input id="search" list="molist" placeholder="название муниципалитета" size="26" class="btn" style="cursor:text"></label>
+      <datalist id="molist"></datalist>
+      <span id="presets" class="controls" style="margin:0"></span>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="mapgrid">
+      <div class="mapbox">
+        <canvas id="map" tabindex="0" aria-label="Карта муниципалитетов по типам"></canvas>
+        <div class="zoom">
+          <button class="btn" id="zin" aria-label="Приблизить">+</button>
+          <button class="btn" id="zout" aria-label="Отдалить">&minus;</button>
+          <button class="btn" id="zreset" aria-label="Вся страна" title="Вся страна">&#8962;</button>
+        </div>
+        <div class="time">
+          <button class="btn" id="play" aria-label="Запустить смену месяцев">&#9654;</button>
+          <input type="range" id="slider" min="0" value="0" step="1" aria-label="Месяц">
+          <output id="mlabel"></output>
+        </div>
+      </div>
+      <div class="card" id="mocard"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="typeshead">Типы локальных экономик</h2>
+    <p class="note" id="macronote"></p>
+    <p class="note">Полосы показывают, во сколько раз показатель типа отличается от среднего по всем муниципалитетам: вправо от черты значит выше среднего, влево ниже.</p>
+    <div class="types" id="types"></div>
+  </section>
+
+  <section>
+    <h2>Как типы меняются во времени</h2>
+    <p class="note">Число муниципалитетов каждого типа по месяцам. Наведи на график, чтобы увидеть значения; нажми, чтобы показать этот месяц на карте.</p>
+    <div class="card"><div id="area"></div>
+      <details><summary>Показать таблицей</summary><div class="scroll" id="areatable"></div></details>
+    </div>
+    <h3 style="margin-top:20px">Переходы между типами за месяц</h3>
+    <p class="note">В строке указан тип в текущем месяце, в столбце тип в следующем. Значение показывает долю муниципалитетов, совершивших такой переход, в процентах.</p>
+    <div class="card scroll" id="trans"></div>
+    <div class="warn note" id="jump"></div>
+  </section>
+
+  <section>
+    <h2>Как это посчитано</h2>
+    <ol id="method"></ol>
+    <h3 style="margin-top:16px">Сравнение методов по индексам качества</h3>
+    <p class="note">Среднее по 24 месяцам. SW, CH, S_Dbw считаются по признакам; AVI, AVU, MQ, Q считаются по сети. Больше лучше: SW, CH, AVI, MQ, Q. Меньше лучше: S_Dbw, AVU.</p>
+    <div class="card scroll" id="icvi"></div>
+    <h3 style="margin-top:16px">Ограничения</h3>
+    <ul id="limits"></ul>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+const D = /*DATA*/null;
+const $ = (s) => document.querySelector(s);
+const el = (tag, props, kids) => { const e = document.createElement(tag); if (props) for (const k in props) { if (k === "style") e.style.cssText = props[k]; else if (k === "text") e.textContent = props[k]; else e.setAttribute(k, props[k]); } (kids || []).forEach(c => e.append(c)); return e; };
+const fmt = (v, d = 0) => v.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (v, d = 0) => fmt(v * 100, d) + "%";
+const MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+const mname = (s) => MN[+s.slice(5) - 1] + " " + s.slice(0, 4);
+const T = D.months.length, K = D.types.length;
+const TY = {}; D.types.forEach(t => TY[t.id] = t);
+const MACROS = [...new Set(D.types.map(t => t.macro).filter(Boolean))];
+const MUTE = getComputedStyle(document.documentElement).getPropertyValue("--mute-dot").trim();
+const state = { t: T - 1, sel: null, iso: null, scale: 1, tx: 0, ty: 0, playing: null };
+const tip = $("#tip");
+function showTip(ev, build) { tip.replaceChildren(); build(tip); tip.style.display = "block"; const w = tip.offsetWidth, h = tip.offsetHeight; let x = ev.clientX + 14, y = ev.clientY + 14; if (x + w > innerWidth - 8) x = ev.clientX - w - 14; if (y + h > innerHeight - 8) y = ev.clientY - h - 14; tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px"; }
+const hideTip = () => tip.style.display = "none";
+const typeRow = (id, extra) => { const r = el("div", { class: "row" }); r.append(el("span", { class: "key", style: "background:" + TY[id].color }), el("span", { text: (extra ? extra + " " : "") + "Тип " + id + ". " + TY[id].name })); return r; };
+
+// ---------- шапка ----------
+document.title = D.title;
+$("#title").textContent = D.title;
+$("#subtitle").textContent = D.subtitle;
+$("#byline").textContent = [D.author, "Онлайн-конкурс СберИндекса 2026, направление «Кластеризация»"].filter(Boolean).join(" · ");
+[[fmt(D.stats.n), "муниципалитетов в выборке"], [T, "месяца наблюдений: " + mname(D.months[0]) + " – " + mname(D.months[T - 1])],
+ [K, MACROS.length > 1 ? "типов в " + MACROS.length + " устойчивых макротипах" : "типов локальных экономик"], [pct(D.stats.never), "муниципалитетов ни разу не сменили тип"],
+ [pct(D.stats.s75), "провели в основном типе не менее 75% месяцев"]]
+  .forEach(([b, s]) => $("#stats").append(el("div", { class: "stat" }, [el("b", { text: b }), el("span", { text: s })])));
+
+// ---------- карта ----------
+const cv = $("#map"), ctx = cv.getContext("2d");
+let W = 0, H = 0, base = 1, ox = 20, oy = 20, yMax = Math.max(...D.mos.map(m => m.y || 0));
+const pts = D.mos.map((m, i) => ({ m, i })).filter(p => p.m.x !== null);
+function resize() { const r = cv.getBoundingClientRect(), dpr = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); base = Math.min((W - 40) / 1, (H - 40) / yMax); ox = (W - base) / 2; oy = (H - yMax * base) / 2; draw(); }
+const sx = (m) => (ox + m.x * base) * state.scale + state.tx;
+const sy = (m) => (oy + m.y * base) * state.scale + state.ty;
+const typeAt = (m, t) => +m.t[t];
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  const rad = Math.min(7, 2.3 * Math.sqrt(state.scale));
+  const twins = state.sel !== null ? new Set(D.mos[state.sel].tw) : new Set();
+  for (const pass of [0, 1]) for (const p of pts) {
+    const ty = typeAt(p.m, state.t), muted = state.iso !== null && ty !== state.iso;
+    if ((pass === 0) !== muted) continue;
+    const x = sx(p.m), y = sy(p.m); if (x < -10 || y < -10 || x > W + 10 || y > H + 10) continue;
+    ctx.beginPath(); ctx.arc(x, y, rad, 0, 6.2832); ctx.fillStyle = muted ? MUTE : TY[ty].color; ctx.globalAlpha = muted ? 0.7 : 0.9; ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  for (const p of pts) { if (!twins.has(p.i)) continue; ctx.beginPath(); ctx.arc(sx(p.m), sy(p.m), rad + 4, 0, 6.2832); ctx.lineWidth = 1.5; ctx.strokeStyle = "#0b0b0b"; ctx.setLineDash([3, 2]); ctx.stroke(); ctx.setLineDash([]); }
+  if (state.sel !== null && D.mos[state.sel].x !== null) { const m = D.mos[state.sel]; ctx.beginPath(); ctx.arc(sx(m), sy(m), rad + 5, 0, 6.2832); ctx.lineWidth = 2.5; ctx.strokeStyle = "#0b0b0b"; ctx.stroke(); }
+}
+function nearest(ev) { const r = cv.getBoundingClientRect(), px = ev.clientX - r.left, py = ev.clientY - r.top; let best = null, bd = 16 * 16; for (const p of pts) { if (state.iso !== null && typeAt(p.m, state.t) !== state.iso) continue; const dx = sx(p.m) - px, dy = sy(p.m) - py, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = p; } } return best; }
+function zoomAt(px, py, f) { const ns = Math.max(1, Math.min(400, state.scale * f)); f = ns / state.scale; state.tx = px - (px - state.tx) * f; state.ty = py - (py - state.ty) * f; state.scale = ns; if (ns === 1) { state.tx = 0; state.ty = 0; } draw(); }
+function fit(list) { if (!list.length) return; const xs = list.map(m => ox + m.x * base), ys = list.map(m => oy + m.y * base); const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys); const s = Math.max(1, Math.min(400, 0.8 * Math.min(W / Math.max(x1 - x0, 1e-6), H / Math.max(y1 - y0, 1e-6)))); state.scale = s; state.tx = W / 2 - (x0 + x1) / 2 * s; state.ty = H / 2 - (y0 + y1) / 2 * s; draw(); }
+cv.addEventListener("wheel", (e) => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.25 : 0.8); }, { passive: false });
+let drag = null;
+cv.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty, moved: false }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", (e) => {
+  if (drag) { const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 4) { drag.moved = true; cv.classList.add("drag"); hideTip(); } if (drag.moved) { state.tx = drag.tx + dx; state.ty = drag.ty + dy; draw(); return; } }
+  const p = nearest(e); if (!p) { hideTip(); return; }
+  showTip(e, (t) => { t.append(el("b", { text: p.m.n }), el("div", { text: p.m.r }), typeRow(typeAt(p.m, state.t), mname(D.months[state.t]) + ":")); });
+});
+cv.addEventListener("pointerup", (e) => { const was = drag; drag = null; cv.classList.remove("drag"); if (was && !was.moved) { const p = nearest(e); if (p) select(p.i); } });
+cv.addEventListener("pointerleave", hideTip);
+cv.addEventListener("keydown", (e) => { const k = e.key; if (k === "+" || k === "=") zoomAt(W / 2, H / 2, 1.25); else if (k === "-") zoomAt(W / 2, H / 2, 0.8); else if (k.startsWith("Arrow")) { const d = 40; state.tx += k === "ArrowLeft" ? d : k === "ArrowRight" ? -d : 0; state.ty += k === "ArrowUp" ? d : k === "ArrowDown" ? -d : 0; draw(); e.preventDefault(); } });
+$("#zin").onclick = () => zoomAt(W / 2, H / 2, 1.6);
+$("#zout").onclick = () => zoomAt(W / 2, H / 2, 1 / 1.6);
+$("#zreset").onclick = () => { state.scale = 1; state.tx = 0; state.ty = 0; draw(); };
+D.presets.forEach(p => { const b = el("button", { class: "btn", text: p.label }); b.onclick = () => fit(pts.filter(q => p.regions.includes(q.m.r)).map(q => q.m)); $("#presets").append(b); });
+
+// ---------- легенда ----------
+function legend() {
+  const box = $("#legend"); box.replaceChildren();
+  D.types.forEach(t => { const b = el("button", { class: "btn chip", "aria-pressed": String(state.iso === t.id) }, [el("span", { class: "dot", style: "background:" + t.color }), el("span", { text: t.id + ". " + t.name }), el("span", { class: "num", text: fmt(t.sizes[state.t]) })]); b.onclick = () => { state.iso = state.iso === t.id ? null : t.id; legend(); draw(); }; box.append(b); });
+}
+
+// ---------- время ----------
+const slider = $("#slider"); slider.max = T - 1;
+function setMonth(t) { state.t = t; slider.value = t; $("#mlabel").textContent = mname(D.months[t]); legend(); draw(); card(); areaMark(); }
+slider.oninput = () => setMonth(+slider.value);
+$("#play").onclick = () => { const b = $("#play"); if (state.playing) { clearInterval(state.playing); state.playing = null; b.textContent = "▶"; b.setAttribute("aria-label", "Запустить смену месяцев"); return; } b.textContent = "⏸"; b.setAttribute("aria-label", "Остановить"); if (state.t === T - 1) setMonth(0); state.playing = setInterval(() => { if (state.t >= T - 1) { $("#play").click(); return; } setMonth(state.t + 1); }, 700); };
+
+// ---------- поиск ----------
+const byLabel = new Map();
+D.mos.forEach((m, i) => { const lab = m.n + " (" + m.r + ")"; byLabel.set(lab, i); $("#molist").append(el("option", { value: lab })); });
+$("#search").addEventListener("change", (e) => { const i = byLabel.get(e.target.value); if (i !== undefined) { select(i); const m = D.mos[i]; if (m.x !== null) { if (state.scale < 6) state.scale = 6; state.tx = W / 2 - (ox + m.x * base) * state.scale; state.ty = H / 2 - (oy + m.y * base) * state.scale; draw(); } } });
+
+// ---------- карточка МО ----------
+function select(i) { state.sel = i; card(); draw(); }
+function card() {
+  const box = $("#mocard"); box.replaceChildren();
+  if (state.sel === null) { box.append(el("h3", { text: "Карточка муниципалитета" }), el("p", { class: "note", text: "Выбери точку на карте или найди муниципалитет по названию. Здесь появятся его тип по месяцам, показатели и экономические двойники из других регионов." })); return; }
+  const m = D.mos[state.sel], cur = typeAt(m, state.t);
+  box.append(el("h3", { text: m.n }), el("div", { class: "note", text: [m.r, m.k].filter(Boolean).join(" · ") }));
+  box.append(el("div", { class: "chip", style: "margin-top:10px" }, [el("span", { class: "dot", style: "background:" + TY[cur].color }), el("span", { text: mname(D.months[state.t]) + ": тип " + cur + ". " + TY[cur].name })]));
+  const strip = el("div", { class: "strip", role: "img", "aria-label": "Тип по месяцам" });
+  for (let t = 0; t < T; t++) { const ty = typeAt(m, t); strip.append(el("i", { style: "background:" + TY[ty].color, title: mname(D.months[t]) + ": тип " + ty, class: t === state.t ? "cur" : "" })); }
+  box.append(el("div", { class: "note", style: "margin-top:12px", text: "Тип по месяцам" }), strip, el("div", { class: "axis" }, [el("span", { text: mname(D.months[0]) }), el("span", { text: mname(D.months[T - 1]) })]));
+  box.append(el("p", { class: "note", style: "margin-top:8px", text: "Основной тип " + m.m + ": " + pct(m.s) + " месяцев. Смен типа: " + m.c + "." }));
+  const tb = el("table"); tb.append(el("tr", null, [el("th", { text: "Показатель" }), el("th", { text: "МО" }), el("th", { text: "Все МО" })]));
+  D.features.forEach((f, j) => { const big = D.country[j] > 1000; tb.append(el("tr", null, [el("td", { text: f + (j < D.features.length - 2 ? ", %" : "") }), el("td", { text: fmt(m.p[j], big ? 0 : 1) }), el("td", { text: fmt(D.country[j], big ? 0 : 1) })])); });
+  box.append(el("div", { class: "scroll" }, [tb]));
+  box.append(el("div", { class: "note", style: "margin-top:12px", text: "Экономические двойники из других регионов (ближайшие по набору признаков, обведены на карте пунктиром):" }));
+  const tw = el("div", { class: "twins" }); m.tw.forEach(j => { const o = D.mos[j], b = el("button", { class: "btn chip" }, [el("span", { class: "dot", style: "background:" + TY[typeAt(o, state.t)].color }), el("span", { text: o.n + ", " + o.r })]); b.onclick = () => select(j); tw.append(b); }); box.append(tw);
+}
+
+// ---------- карточки типов ----------
+if (MACROS.length > 1) { $("#typeshead").textContent = MACROS.length + " макротипа и " + K + " типов"; $("#macronote").textContent = "Проверка на подвыборках показала, что надёжнее всего выделяются " + MACROS.length + " макротипа: " + MACROS.map(m => m.toLowerCase() + " (типы " + D.types.filter(t => t.macro === m).map(t => t.id).join(" и ") + ")").join(", ") + ". Деление на " + K + " типов уточняет эту картину; граница между типами одного макротипа менее надёжна."; }
+D.types.forEach(t => {
+  const c = el("div", { class: "card" });
+  c.append(el("div", { class: "chip" }, [el("span", { class: "dot", style: "background:" + t.color }), el("h3", { style: "margin:0", text: "Тип " + t.id + ". " + t.name })]));
+  if (t.macro) c.append(el("div", { class: "note", style: "margin-top:4px", text: "Макротип: " + t.macro }));
+  c.append(el("p", { class: "note", style: "margin-top:6px", text: fmt(t.n) + " МО с этим основным типом; " + pct(t.stable) + " ни разу его не меняли. Чаще всего: " + t.regions.join(", ") + "." }));
+  const bars = el("div", { class: "bars" });
+  D.features.forEach((f, j) => { const l = t.lift[j], w = Math.min(Math.abs(l - 1) / 1.5, 1) * 50, tr = el("div", { class: "track" }), bar = el("i", { class: l < 1 ? "neg" : "", style: (l < 1 ? "right:50%;" : "left:50%;") + "width:" + w + "%" }); tr.append(bar); const big = t.prof[j] > 1000; tr.title = f + ": " + fmt(t.prof[j], big ? 0 : 1) + (j < D.features.length - 2 ? "%" : "") + " (в среднем " + fmt(D.country[j], big ? 0 : 1) + ")"; bars.append(el("span", { text: f }), tr, el("span", { class: "num", style: "text-align:right", text: "×" + fmt(l, 2) })); });
+  c.append(bars); $("#types").append(c);
+});
+
+// ---------- график размеров типов ----------
+let areaLine = null;
+(function area() {
+  const NS = "http://www.w3.org/2000/svg", w = 1040, h = 300, L = 44, R = 12, Tp = 10, B = 28, iw = w - L - R, ih = h - Tp - B, N = D.stats.n;
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Число муниципалитетов каждого типа по месяцам"); svg.style.cssText = "width:100%;height:auto;display:block";
+  const s = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const X = (t) => L + iw * t / (T - 1), Y = (v) => Tp + ih * (1 - v / N);
+  for (let v = 0; v <= N; v += 500) { svg.append(s("line", { x1: L, x2: w - R, y1: Y(v), y2: Y(v), stroke: "#eceae4" })); const tx = s("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }); tx.textContent = fmt(v); svg.append(tx); }
+  let cum = new Array(T).fill(0);
+  D.types.forEach(t => { const lo = cum.slice(), hi = cum.map((v, i) => v + t.sizes[i]); let d = ""; for (let i = 0; i < T; i++) d += (i ? "L" : "M") + X(i) + "," + Y(hi[i]); for (let i = T - 1; i >= 0; i--) d += "L" + X(i) + "," + Y(lo[i]); svg.append(s("path", { d: d + "Z", fill: t.color, stroke: "#fcfcfb", "stroke-width": 2, "stroke-linejoin": "round" })); cum = hi; });
+  for (let i = 0; i < T; i++) if (D.months[i].endsWith("-01") || D.months[i].endsWith("-07")) { const tx = s("text", { x: X(i), y: h - 8, "text-anchor": "middle" }); tx.textContent = mname(D.months[i]); svg.append(tx); }
+  areaLine = s("line", { y1: Tp, y2: Tp + ih, stroke: "#0b0b0b", "stroke-width": 1.5 }); svg.append(areaLine);
+  const hover = s("line", { y1: Tp, y2: Tp + ih, stroke: "#0b0b0b", "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden" }); svg.append(hover);
+  const hit = s("rect", { x: L, y: Tp, width: iw, height: ih, fill: "transparent" }); svg.append(hit);
+  const idx = (e) => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(T - 1, Math.round(((e.clientX - r.left) / r.width * w - L) / iw * (T - 1)))); };
+  hit.addEventListener("pointermove", (e) => { const i = idx(e); hover.setAttribute("x1", X(i)); hover.setAttribute("x2", X(i)); hover.setAttribute("visibility", "visible"); showTip(e, (t) => { t.append(el("b", { text: mname(D.months[i]) })); D.types.slice().reverse().forEach(ty => { const r = el("div", { class: "row" }); r.append(el("span", { class: "key", style: "background:" + ty.color }), el("b", { text: fmt(ty.sizes[i]) }), el("span", { text: "тип " + ty.id })); t.append(r); }); if (D.changed[i] !== null) t.append(el("div", { text: "Сменили тип за месяц: " + pct(D.changed[i], 1) })); }); });
+  hit.addEventListener("pointerleave", () => { hover.setAttribute("visibility", "hidden"); hideTip(); });
+  hit.addEventListener("click", (e) => setMonth(idx(e)));
+  const lg = el("div", { class: "legend" }); D.types.forEach(t => lg.append(el("span", { class: "chip", style: "font-size:14px" }, [el("span", { class: "sq", style: "background:" + t.color }), el("span", { text: t.id + ". " + t.name })])));
+  $("#area").append(lg, svg);
+  const tb = el("table"); tb.append(el("tr", null, [el("th", { text: "Месяц" }), ...D.types.map(t => el("th", { text: "Тип " + t.id })), el("th", { text: "Сменили тип" })]));
+  D.months.forEach((m, i) => tb.append(el("tr", null, [el("td", { text: mname(m) }), ...D.types.map(t => el("td", { text: fmt(t.sizes[i]) })), el("td", { text: D.changed[i] === null ? "" : pct(D.changed[i], 1) })])));
+  $("#areatable").append(tb);
+  area.X = X; window.__areaX = X;
+})();
+function areaMark() { if (areaLine && window.__areaX) { const x = window.__areaX(state.t); areaLine.setAttribute("x1", x); areaLine.setAttribute("x2", x); } }
+
+// ---------- матрица переходов ----------
+(function trans() {
+  const ramp = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"];
+  const tb = el("table"); tb.append(el("tr", null, [el("th", { text: "Из типа \\ в тип" }), ...D.types.map(t => el("th", { text: t.id }))]));
+  D.P.forEach((row, a) => { const tr = el("tr"); tr.append(el("td", null, [el("span", { class: "chip" }, [el("span", { class: "dot", style: "background:" + D.types[a].color }), el("span", { text: D.types[a].id + ". " + D.types[a].name })])])); row.forEach((v, b) => { const off = a !== b, k = off ? Math.min(5, Math.floor(v / 0.012)) : 5, td = el("td", { text: fmt(v * 100, 1), title: "Из типа " + (a + 1) + " в тип " + (b + 1) + ": " + fmt(v * 100, 1) + "%" }); if (!off) td.style.cssText = "font-weight:700"; else if (v >= 0.004) td.style.cssText = "background:" + ramp[k] + ";color:" + (k >= 3 ? "#fff" : "#0b0b0b"); else td.style.color = "#85837c"; tr.append(td); }); tb.append(tr); });
+  $("#trans").append(tb);
+  let mx = 0, mi = 0; D.changed.forEach((v, i) => { if (v !== null && v > mx) { mx = v; mi = i; } });
+  const rest = D.changed.filter((v, i) => v !== null && i !== mi), med = rest.slice().sort((a, b) => a - b)[Math.floor(rest.length / 2)];
+  $("#jump").textContent = "Самая большая перестройка пришлась на " + mname(D.months[mi]) + ": тип сменили " + pct(mx, 1) + " муниципалитетов при обычных " + pct(med, 1) + " за месяц. Границы между типами размыты, поэтому такой скачок может быть сдвигом границы между близкими типами, а не экономическим событием.";
+})();
+
+// ---------- метод, сравнение, ограничения ----------
+["Признаки. Для каждого муниципалитета и месяца: шесть долей безналичных трат (продовольствие, маркетплейсы, здоровье, общественное питание, транспорт, прочее), логарифм трат на жителя и логарифм индекса доступности рынков. Признаки стандартизованы внутри каждого месяца.",
+ "Сеть. Узлы это муниципалитеты. Ребро соединяет муниципалитет с десятью наиболее похожими по косинусному сходству векторов признаков. Для сравнения построены сети по синхронности изменений признаков и по расстоянию по автодорогам.",
+ "Кластеризация. Спектральная кластеризация сети на шесть типов. Для сравнения: k-средних по признакам, метод Лувена и метод Уорда с ограничением по сети.",
+ "Динамика. Сеть месяца смешивается с сетью предыдущих месяцев с весом α = " + String(D.alpha).replace(".", ",") + " (эволюционная кластеризация), после чего кластеры соседних месяцев сопоставляются венгерским алгоритмом по числу общих муниципалитетов.",
+ "Интерпретация. Профили типов посчитаны по исходным данным. Двойники подобраны как ближайшие по среднему вектору признаков муниципалитеты из других регионов."]
+  .forEach(s => $("#method").append(el("li", { text: s })));
+(function icvi() { const tb = el("table"); tb.append(el("tr", null, D.icvi.cols.map(c => el("th", { text: c })))); D.icvi.rows.forEach(r => tb.append(el("tr", null, r.map((v, j) => el("td", { text: typeof v === "number" ? fmt(v, j === 2 ? 1 : (D.icvi.cols[j] === "CH" ? 0 : 3)) : v }))))); $("#icvi").append(tb); })();
+["Границы между типами размыты: средняя ширина силуэта около 0,15. Муниципалитеты образуют непрерывный спектр, и типы 1–3 заметно обмениваются составом.",
+ "Деление на четыре и пять групп устойчивее, чем на шесть: шесть типов приведены как уточнение четырёх макротипов, и самая ненадёжная граница проходит между типами 1 и 2.",
+ "Без доли маркетплейсов или без доступности рынков типология заметно меняется: она держится в первую очередь на этих двух признаках.",
+ "Доступность рынков зависит от географического положения, поэтому пространственная связность типов отчасти заложена этим признаком.",
+ "В выборку вошли только муниципалитеты с полными данными за все 24 месяца."]
+  .forEach(s => $("#limits").append(el("li", { text: s })));
+const ft = $("#footer"); ft.append(el("span", { text: "Данные: СберИндекс, набор данных хакатона по муниципальным данным (CC BY-SA 4.0). " }));
+if (D.repo) { const a = el("a", { href: D.repo, text: "Код и методологический отчёт" }); ft.append(a); }
+
+addEventListener("resize", resize);
+resize(); setMonth(T - 1); card();
+</script>
+</body>
+</html>

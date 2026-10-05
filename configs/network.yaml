@@ -1,0 +1,22 @@
+# Конфиг шага 2: построение сети МО для каждого месяца.
+
+input:
+  features: data/processed/features.parquet
+  connection: data/raw/hackathonlicence/connection.parquet
+
+k: 10                 # число ближайших соседей у каждого МО
+k_alt: 20             # второй вариант k для проверки чувствительности
+
+rules:
+  cosine:             # A. похожая структура признаков в данном месяце
+    enabled: true
+  corr:               # B. признаки меняются синхронно (корреляция рядов)
+    enabled: true
+    window: 12        # ширина окна в месяцах (центрировано на текущем месяце)
+  geo:                # C. близость по автодорогам (сеть одна на все месяцы)
+    enabled: true
+    type: highway
+
+output:
+  dir: data/processed/network
+  report: reports/network_summary.md

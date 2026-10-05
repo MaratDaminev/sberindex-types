@@ -1,0 +1,38 @@
+# Конфиг шага 6: интерпретация типов.
+
+input:
+  consumption: data/raw/hackathonlicence/consumption.parquet
+  market_access: data/raw/hackathonlicence/market_access.parquet
+  dictionary: data/raw/t_dict_municipal_districts.xlsx
+  labels: data/processed/dynamics/final_labels.parquet
+  mo_summary: data/processed/dynamics/mo_summary.csv
+
+total_category: "Все категории"
+
+# Названия типов - черновик, проверь и поправь сам по таблицам из отчёта.
+# Номера типов привязаны к результату шага 5: если поменяешь там alpha или число кластеров, названия надо пересмотреть.
+type_names:
+  1: "Провинция с высокой долей маркетплейсов"
+  2: "Сельская периферия с продовольственным профилем"
+  3: "Северные и восточные территории с высокими тратами"
+  4: "Региональные центры и крупные города"
+  5: "Московская агломерация и пригороды крупных центров"
+  6: "Районы Москвы с самыми высокими тратами"
+
+# Макротипы: четыре группы, устойчивые при проверке на подвыборках (см. reports/robustness.md)
+macro_types:
+  1: "Провинция"
+  2: "Провинция"
+  3: "Север и восток"
+  4: "Города"
+  5: "Столичная агломерация"
+  6: "Столичная агломерация"
+
+focus_region: "Башкортостан"   # регион для подробного разбора
+n_examples: 8                  # сколько типичных МО показывать на тип
+tree_depth: 3                  # глубина дерева решений, объясняющего типы
+seed: 42
+
+output:
+  report: reports/interpretation.md
+  mo_table: data/processed/dynamics/mo_types.csv
