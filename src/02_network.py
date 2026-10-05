@@ -8,6 +8,8 @@
   cosine - ребро к k МО с самым большим косинусным сходством векторов признаков в месяце t
   corr   - ребро к k МО, чьи признаки менялись наиболее синхронно в окне вокруг месяца t
   geo    - ребро к k ближайшим МО по автодороге (одинаково для всех месяцев)
+  lag    - ребро к k МО с наибольшей лаговой корреляцией изменений признаков: один МО повторяет изменения
+           другого с опозданием до max_lag месяцев (одинаково для всех месяцев)
 Во всех правилах сеть симметризуется: ребро i-j есть, если j среди соседей i или i среди соседей j.
 """
 from pathlib import Path
@@ -52,6 +54,29 @@ def sim_corr(D):
     return U @ U.T
 
 
+def sim_lag(delta, max_lag):
+    """Лаговая корреляция. delta - изменения признаков, (T-1) x n x p.
+
+    Для каждого сдвига l от -max_lag до max_lag считается корреляция между изменениями МО i в месяце t
+    и изменениями МО j в месяце t + l (по всем месяцам и признакам сразу). Сходство пары - наибольшая из
+    этих корреляций. Возвращает сходство, сдвиг, на котором оно достигнуто, и корреляцию без сдвига.
+    """
+    Tm, n, _ = delta.shape
+    best, arg, zero = np.full((n, n), -np.inf), np.zeros((n, n), dtype=int), None
+    for l in range(-max_lag, max_lag + 1):
+        a = delta[max(0, -l):Tm - max(0, l)]           # ряд МО i
+        b = delta[max(0, l):Tm - max(0, -l)]           # ряд МО j, сдвинутый на l месяцев
+        A = a.transpose(1, 0, 2).reshape(n, -1)
+        B = b.transpose(1, 0, 2).reshape(n, -1)
+        C = unit_rows(A - A.mean(axis=1, keepdims=True)) @ unit_rows(B - B.mean(axis=1, keepdims=True)).T
+        if l == 0:
+            zero = C.copy()
+        upd = C > best
+        best[upd], arg[upd] = C[upd], l
+    best = np.maximum(best, best.T)                    # связь не направлена: берём большее из двух направлений
+    return best, arg, zero
+
+
 def main():
     feat = pd.read_parquet(CFG["input"]["features"])
     months = sorted(feat["month"].unique())
@@ -75,13 +100,13 @@ def main():
 
     out = Path(CFG["output"]["dir"])
     out.mkdir(parents=True, exist_ok=True)
-    rows, store = [], {}
+    rows, store, lag_info = [], {}, {}
     for k in (CFG["k"], CFG["k_alt"]):
         for rule, rc in CFG["rules"].items():
             if not rc.get("enabled"):
                 continue
             parts = []
-            geo_static = None
+            geo_static = lag_static = None
             for t, m in enumerate(months):
                 if rule == "cosine":
                     e = knn_edges(sim_cosine(cube[t]), k)
@@ -96,6 +121,17 @@ def main():
                         scale = np.nanmedian(np.sort(d, axis=1)[:, k])     # типичное расстояние до k-го соседа
                         geo_static = knn_edges(np.exp(-np.round(d, 1) / scale), k)
                     e = geo_static
+                elif rule == "lag":
+                    if lag_static is None:
+                        S, arg, zero = sim_lag(delta, rc["max_lag"])
+                        lag_static = knn_edges(S, k)
+                        la = np.abs(arg[lag_static["i"], lag_static["j"]])
+                        lag_info[k] = {"доля рёбер с наибольшей корреляцией без сдвига": float((la == 0).mean()),
+                                       "со сдвигом на 1 месяц": float((la == 1).mean()),
+                                       "со сдвигом на 2 месяца и больше": float((la >= 2).mean()),
+                                       "средняя корреляция на рёбрах без сдвига": float(zero[lag_static["i"], lag_static["j"]].mean()),
+                                       "средняя наибольшая корреляция по сдвигам": float(lag_static["w"].mean())}
+                    e = lag_static
                 e = e.assign(month=m)
                 parts.append(e)
             E = pd.concat(parts, ignore_index=True)
@@ -140,6 +176,11 @@ def main():
            f"## Доля общих рёбер между правилами (Жаккар, k={k})", "", over.round(3).to_markdown(), "",
            f"## Устойчивость сети во времени (Жаккар рёбер соседних месяцев, k={k})", "",
            pd.Series(stab).round(3).to_frame("Жаккар").to_markdown(), ""]
+    if k in lag_info:
+        txt += [f"## Лаговая корреляция: на каком сдвиге достигается сходство (k={k})", "",
+                "Сеть lag строится один раз по всему периоду. Сходство пары - наибольшая корреляция изменений "
+                f"признаков при сдвиге одного ряда относительно другого от 0 до {CFG['rules']['lag']['max_lag']} месяцев.", "",
+                pd.Series(lag_info[k]).round(3).to_frame("значение").to_markdown(), ""]
     rep = Path(CFG["output"]["report"])
     rep.parent.mkdir(parents=True, exist_ok=True)
     rep.write_text("\n".join(txt), encoding="utf-8")

@@ -16,6 +16,9 @@ rules:
   geo:                # C. близость по автодорогам (сеть одна на все месяцы)
     enabled: true
     type: highway
+  lag:                # D. лаговая корреляция: один МО повторяет изменения другого с опозданием (сеть одна на все месяцы)
+    enabled: true
+    max_lag: 2        # наибольший сдвиг в месяцах
 
 output:
   dir: data/processed/network

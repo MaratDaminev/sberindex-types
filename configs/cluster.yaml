@@ -12,6 +12,7 @@ graphs:                     # сети из шага 2, на которых за
   - cosine_k10
   - corr_k10
   - geo_k10
+  - lag_k10
   - cosine_k20
 reference_graph: cosine_k10 # сеть для сетевых метрик у метода без сети (kmeans)
 
