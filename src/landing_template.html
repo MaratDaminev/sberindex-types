@@ -252,7 +252,7 @@ function card() {
 }
 
 // ---------- карточки типов ----------
-if (MACROS.length > 1) { $("#typeshead").textContent = MACROS.length + " макротипа и " + K + " типов"; $("#macronote").textContent = "Проверка на подвыборках показала, что надёжнее всего выделяются " + MACROS.length + " макротипа: " + MACROS.map(m => m.toLowerCase() + " (типы " + D.types.filter(t => t.macro === m).map(t => t.id).join(" и ") + ")").join(", ") + ". Деление на " + K + " типов уточняет эту картину; граница между типами одного макротипа менее надёжна."; }
+if (MACROS.length > 1) { $("#typeshead").textContent = MACROS.length + " макротипа и " + K + " типов"; $("#macronote").textContent = "Проверка на подвыборках показала, что надёжнее всего выделяются " + MACROS.length + " макротипа: " + MACROS.map(m => { const ids = D.types.filter(t => t.macro === m).map(t => t.id); return m.toLowerCase() + " (" + (ids.length > 1 ? "типы " : "тип ") + ids.join(" и ") + ")"; }).join(", ") + ". Деление на " + K + " типов уточняет эту картину; граница между типами одного макротипа менее надёжна."; }
 D.types.forEach(t => {
   const c = el("div", { class: "card" });
   c.append(el("div", { class: "chip" }, [el("span", { class: "dot", style: "background:" + t.color }), el("h3", { style: "margin:0", text: "Тип " + t.id + ". " + t.name })]));
