@@ -6,7 +6,7 @@
 
 Авторы: ВПИШИ ИМЕНА И ВУЗ
 
-- Интерактивный лендинг: ВПИШИ ССЫЛКУ НА GITHUB PAGES (локально: `site/index.html`)
+- Интерактивный лендинг: https://maratdaminev.github.io/sberindex-types/ (локально: `site/index.html`)
 - Методологический отчёт: [reports/methodology.md](reports/methodology.md)
 
 ## Что сделано

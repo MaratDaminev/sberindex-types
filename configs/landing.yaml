@@ -3,7 +3,7 @@
 title: "Типы локальных экономик России"
 subtitle: "Динамическая кластеризация муниципалитетов по безналичным расходам, 2023-2024"
 authors: "Даминев Марат УГНТУ, Атнагулов Тимур УГНТУ"                       # впиши имя и вуз
-repo_url: ""                     # впиши ссылку на GitHub-репозиторий
+repo_url: "https://github.com/MaratDaminev/sberindex-types"
 
 input:
   features: data/processed/features.parquet
